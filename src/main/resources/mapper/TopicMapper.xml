@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cutety.dao.TopicMapper">
+    <!--主题基本结果集-->
+    <resultMap id="BaseResultMap" type="com.cutety.domain.Topic">
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="user_id" property="userId" jdbcType="INTEGER" />
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+        <result column="title" property="title" jdbcType="VARCHAR" />
+        <result column="click" property="click" jdbcType="INTEGER" />
+        <result column="tab_id" property="tabId" jdbcType="TINYINT" />
+        <result column="likes" property="likes" jdbcType="INTEGER"/>
+    </resultMap>
+    <!--主题基本结果集+主题详情结果集 用于主题详情展示-->
+    <resultMap id="ResultMapWithBLOBS" type="com.cutety.domain.Topic" extends="BaseResultMap">
+        <result column="content" property="content" jdbcType="LONGVARCHAR"/>
+    </resultMap>
+
+    <!-- 主题和用户信息结果集，用于首页显示-->
+    <resultMap id="TopicAndUserInfo" type="com.cutety.domain.Topic">
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="user_id" property="userId" jdbcType="INTEGER" />
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+        <result column="title" property="title" jdbcType="VARCHAR" />
+        <result column="click" property="click" jdbcType="INTEGER" />
+        <result column="tab_id" property="tabId" jdbcType="TINYINT" />
+        <result column="likes" property="likes" jdbcType="INTEGER"/>
+        <result column="count_replies" property="countReplies" jdbcType="INTEGER"/>
+        <result column="tags" property="tags" jdbcType="VARCHAR"/>
+        <association property="user" javaType="com.cutety.domain.User">
+            <id column="id" property="id" jdbcType="INTEGER"/>
+            <result column="username" property="username" jdbcType="VARCHAR"/>
+            <result column="avatar" property="avatar" jdbcType="VARCHAR"/>
+        </association>
+        <association property="tab" javaType="com.cutety.domain.Tab">
+            <id column="id" property="id" jdbcType="INTEGER"/>
+            <result column="tab_name" property="tabName" jdbcType="VARCHAR"/>
+        </association>
+        <association property="tag" javaType="com.cutety.domain.Tag">
+            <id column="id" property="id" jdbcType="INTEGER"/>
+            <result column="tag_name" property="tagName" jdbcType="VARCHAR"/>
+        </association>
+        <association property="topicTag" javaType="com.cutety.domain.TopicTag">
+            <id column="id" property="id" jdbcType="INTEGER"/>
+            <result column="topic_id" property="topicId" jdbcType="INTEGER"/>
+            <result column="tag_id" property="tagId" jdbcType="INTEGER"/>
+        </association>
+    </resultMap>
+    <!-- 主题详情及用户必要信息 用于主题详情页  -->
+    <resultMap id="topicAndUserDetail" type="com.cutety.domain.Topic">
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="user_id" property="userId" jdbcType="INTEGER" />
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+        <result column="title" property="title" jdbcType="VARCHAR" />
+        <result column="content" property="content" jdbcType="LONGVARCHAR" />
+        <result column="click" property="click" jdbcType="INTEGER" />
+        <result column="tab_id" property="tabId" jdbcType="TINYINT" />
+        <result column="likes" property="likes" jdbcType="INTEGER"/>
+        <result column="dislikes" property="dislikes" jdbcType="INTEGER"/>
+        <association property="user" javaType="com.cutety.domain.User">
+            <id column="id" property="id" jdbcType="INTEGER" />
+            <result column="username" property="username" jdbcType="VARCHAR" />
+            <result column="avatar" property="avatar" jdbcType="VARCHAR" />
+        </association>
+    </resultMap>
+    <select id="listTopicsAndUsers" resultMap="TopicAndUserInfo">
+    /*select topic.id,topic.user_id,topic.create_time,topic.update_time,topic.title,topic.click,topic.tab_id,topic.likes,user.username,user.avatar ,
+    tab.tab_name,count(reply.id) as count_replies from topic LEFT JOIN user on  topic.user_id = user.id
+	LEFT JOIN tab on tab.id=topic.tab_id LEFT JOIN reply on topic.id=reply.topic_id
+	group by topic.id order by topic.id desc ;*/
+	  select  GROUP_CONCAT(DISTINCT tag.tag_name) as tags,topic.id,topic.user_id,topic.create_time,topic.update_time,topic.title,topic.click,topic.tab_id,topic.likes,user.username,user.avatar ,
+    tab.tab_name,count(reply.id) as count_replies from topic LEFT JOIN user on  topic.user_id = user.id
+	LEFT JOIN tab on tab.id=topic.tab_id LEFT JOIN reply on topic.id=reply.topic_id LEFT JOIN topic_tag on topic_tag.topic_id=topic.id LEFT JOIN tag ON tag.id=topic_tag.tag_id
+	group by topic.id order by topic.id desc ;
+    </select>
+    <select id="getAllTopicsByTagName" resultMap="TopicAndUserInfo" parameterType="java.lang.String">
+    select GROUP_CONCAT(DISTINCT tag.tag_name) as tags,topic.id,topic.user_id,topic.create_time,topic.update_time,topic.title,topic.click,
+    topic.tab_id,topic.likes,user.username,user.avatar ,tab.tab_name,count(reply.id) as count_replies from
+    topic LEFT JOIN user on  topic.user_id = user.id LEFT JOIN tab on tab.id=topic.tab_id LEFT JOIN reply on
+    topic.id=reply.topic_id LEFT JOIN topic_tag ON topic_tag.topic_id=topic.id LEFT JOIN tag ON tag.id=topic_tag.tag_id
+    where tag.tag_name=#{tagName,jdbcType=VARCHAR} group by topic.id order by topic.id desc
+    </select>
+
+    <select id="selectById" resultMap="topicAndUserDetail">
+        select topic.*,user.username,user.avatar from topic,user where user.id=topic.user_id and topic.id=#{topicId,jdbcType=INTEGER}
+    </select>
+
+    <insert id="postATopic" parameterType="com.cutety.domain.Topic" useGeneratedKeys="true" keyProperty="id" >
+       <!-- <selectKey keyProperty="id" resultType="int" order="AFTER">
+            select @@identity as id
+        </selectKey>-->
+    insert into topic (user_id, create_time,
+      update_time, title,
+      tab_id, content)
+    values ( #{userId,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
+      #{updateTime,jdbcType=TIMESTAMP}, #{title,jdbcType=VARCHAR},
+      #{tabId,jdbcType=TINYINT}, #{content,jdbcType=LONGVARCHAR})
+  </insert>
+
+    <select id="selectTopicsByUserId" resultMap="BaseResultMap">
+        select * from topic where user_id=#{userId}
+    </select>
+
+    <update id="alterUpdateTime">
+        update topic set update_time=#{date,jdbcType=TIMESTAMP} where id=#{topicId,jdbcType=INTEGER}
+    </update>
+
+    <update id="addClickNumber">
+        update topic set click=click+1 where id=#{topicId,jdbcType=INTEGER}
+    </update>
+
+    <select id="selectTopicsLike" resultMap="TopicAndUserInfo">
+               select  GROUP_CONCAT(DISTINCT tag.tag_name) as tags,topic.id,topic.user_id,topic.create_time,topic.update_time,topic.title,topic.click,topic.tab_id,topic.likes,user.username,user.avatar ,
+    tab.tab_name,count(reply.id) as count_replies from topic LEFT JOIN user on  topic.user_id = user.id
+	LEFT JOIN tab on tab.id=topic.tab_id LEFT JOIN reply on topic.id=reply.topic_id LEFT JOIN topic_tag on topic_tag.topic_id=topic.id LEFT JOIN tag ON tag.id=topic_tag.tag_id
+	where title LIKE #{description,jdbcType=VARCHAR} OR topic.content LIKE #{description,jdbcType=VARCHAR}
+	group by topic.id order by topic.id desc ;
+    </select>
+</mapper>

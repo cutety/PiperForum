@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cutety.dao.ReplyMapper">
+    <resultMap id="ReplyResult" type="com.cutety.domain.Reply">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="topic_id" property="topicId" jdbcType="INTEGER"/>
+        <result column="content" property="content" jdbcType="LONGVARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+        <result column="device" property="device" jdbcType="VARCHAR"/>
+        <result column="likes" property="likes" jdbcType="INTEGER"/>
+        <result column="dislike" property="dislike" jdbcType="INTEGER"/>
+        <association property="user" javaType="com.cutety.domain.User">
+            <id column="id" property="id" jdbcType="INTEGER"/>
+            <result column="username" property="username" jdbcType="VARCHAR"/>
+            <result column="avatar" property="avatar" jdbcType="VARCHAR"/>
+        </association>
+    </resultMap>
+
+    <!--用topicID查询回复列表-->
+    <select id="selectRepliesByTopicId" resultMap="ReplyResult">
+        SELECT reply.*,user.username,user.avatar from reply,user WHERE  reply_user_id=user.id and topic_id=#{topicId}
+    </select>
+
+    <!--增加点赞数-->
+    <update id="clickToLike">
+       <!-- <selectKey keyProperty="likes" resultType="com.cutety.domain.Reply" order="AFTER">
+            SELECT
+            (select likes from reply where id=#{replyId})likes
+            from DUAL
+        </selectKey>-->
+        update reply set likes=likes+1 where id=#{replyId}
+    </update>
+    <insert id="addReply" parameterType="com.cutety.domain.Reply">
+        insert into reply(topic_id,reply_user_id,content,create_time,update_time,device,likes,dislike)
+        values(#{topicId,jdbcType=INTEGER},#{replyUserId,jdbcType=INTEGER},#{content,jdbcType=LONGVARCHAR},#{createTime,jdbcType=TIMESTAMP},
+        #{updateTime,jdbcType=TIMESTAMP},#{device,jdbcType=VARCHAR},#{likes,jdbcType=INTEGER},#{dislike,jdbcType=INTEGER})
+    </insert>
+</mapper>

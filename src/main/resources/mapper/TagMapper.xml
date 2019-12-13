@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.cutety.dao.TagMapper">
+    <select id="existTag" resultType="java.lang.Integer">
+        select id from tag where tag_name=#{tagName,jdbcType=VARCHAR}
+    </select>
+
+    <insert id="addTags"  useGeneratedKeys="true" keyProperty="id" parameterType="com.cutety.domain.Tag">
+        insert into tag (tag_name) values (#{tagName,jdbcType=VARCHAR})
+    </insert>
+
+    <insert id="addTags2Topic">
+        insert into topic_tag (topic_id,tag_id) values (#{topicId,jdbcType=INTEGER},#{tagId,jdbcType=INTEGER})
+    </insert>
+
+    <select id="getAllTagsByTopicId" resultType="com.cutety.domain.Tag">
+        SELECT tag.id,tag.tag_name FROM tag LEFT JOIN topic_tag ON tag.id=topic_tag.tag_id WHERE topic_tag.topic_id=#{topicId}
+    </select>
+</mapper>

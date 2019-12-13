@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="PiperForum:war">
+    <output-path>$PROJECT_DIR$/target</output-path>
+    <properties id="maven-jee-properties">
+      <options>
+        <module>PiperForum</module>
+        <packaging>war</packaging>
+      </options>
+    </properties>
+    <root id="archive" name="PiperForum-1.0-SNAPSHOT.war">
+      <element id="artifact" artifact-name="PiperForum:war exploded" />
+    </root>
+  </artifact>
+</component>

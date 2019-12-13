@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="9f1027ce-69fb-4338-ab0d-2b47f4cf977b" name="alibb" url="http://47.104.17.198/">
+        <fileTransfer host="47.104.17.198" port="22" rootFolder="/tomcat8/apache-tomcat-8.5.49/webapps" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
